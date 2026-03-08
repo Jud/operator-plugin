@@ -1,0 +1,14 @@
+{
+  "name": "operator",
+  "description": "Voice-first orchestration layer for multiple concurrent Claude Code sessions on macOS",
+  "owner": {
+    "name": "Operator"
+  },
+  "plugins": [
+    {
+      "name": "operator",
+      "description": "Operator voice integration hooks and MCP server",
+      "source": "./plugins/operator"
+    }
+  ]
+}

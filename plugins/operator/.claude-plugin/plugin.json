@@ -1,0 +1,7 @@
+{
+  "name": "operator",
+  "description": "Voice-first orchestration for Claude Code sessions. Registers sessions with the Operator daemon and provides the speak MCP tool for voice output.",
+  "author": {
+    "name": "Operator"
+  }
+}
