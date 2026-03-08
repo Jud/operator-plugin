@@ -41,9 +41,12 @@ curl -s -o /dev/null -w "" \
     '{ "session_id": $sid, "tty": $tty, "cwd": $cwd }'
   )" 2>/dev/null || true
 
-# Inject system message so Claude knows to use the speak tool
+# Inject context so Claude knows to use the speak tool
 jq -n '{
-  "systemMessage": "You are connected to Operator, a voice orchestration layer. At the END of every turn, you MUST call the `speak` MCP tool with a brief (1-2 sentence) spoken summary of what you did or your response. This is how the user hears you. Never skip the speak call."
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": "You are connected to Operator, a voice orchestration layer. At the END of every turn, you MUST call the `speak` MCP tool with a brief (1-2 sentence) spoken summary of what you did or your response. This is how the user hears you. Never skip the speak call."
+  }
 }'
 
 exit 0
