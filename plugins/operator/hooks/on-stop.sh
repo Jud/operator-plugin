@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Operator Stop hook
-# Posts the last assistant message to the Operator daemon as fallback speech
-# delivery in case the agent did not call the speak MCP tool.
+# Posts the last assistant message to the Operator daemon for routing context
+# and as fallback speech delivery.
 
 HOOK_INPUT=$(cat)
 
