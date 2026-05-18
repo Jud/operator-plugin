@@ -22,6 +22,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/on-prompt-submit.sh",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }

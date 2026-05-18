@@ -5,28 +5,10 @@ set -euo pipefail
 # Posts the last assistant message to the Operator daemon for routing context
 # and as fallback speech delivery.
 
-HOOK_INPUT=$(cat)
+source "$(dirname "$0")/_common.sh"
+[[ -z "$TOKEN" ]] && exit 0
 
-SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // ""')
 LAST_MSG=$(echo "$HOOK_INPUT" | jq -r '.last_assistant_message // ""')
-
-# Detect TTY of the parent shell
-TTY=$(ps -o tty= -p $PPID 2>/dev/null | tr -d '[:space:]') || true
-if [[ -z "$TTY" ]]; then
-  TTY="unknown"
-else
-  case "$TTY" in
-    /dev/*) ;;
-    *) TTY="/dev/$TTY" ;;
-  esac
-fi
-
-# Read bearer token
-TOKEN_FILE="$HOME/.operator/token"
-if [[ ! -f "$TOKEN_FILE" ]]; then
-  exit 0
-fi
-TOKEN=$(cat "$TOKEN_FILE")
 
 # POST stop event to Operator daemon (best-effort)
 curl -s -o /dev/null -w "" \
@@ -34,7 +16,7 @@ curl -s -o /dev/null -w "" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d "$(jq -n \
-    --arg sid "$SESSION_ID" \
+    --arg sid "$SESSION_NAME" \
     --arg tty "$TTY" \
     --arg msg "$LAST_MSG" \
     '{ "session_id": $sid, "tty": $tty, "last_assistant_message": $msg }'
