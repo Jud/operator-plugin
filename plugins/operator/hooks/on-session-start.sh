@@ -27,12 +27,38 @@ if [[ -n "${CLAUDE_ENV_FILE:-}" ]]; then
   echo 'export PATH="$HOME/.operator/bin:$PATH"' >> "$CLAUDE_ENV_FILE"
 fi
 
-# Inject context so Claude knows to use the operator speak CLI
-jq -n '{
+# Inject context so Claude knows to use the operator speak CLI.
+# Uses a temp file to avoid shell quoting issues with jq.
+CONTEXT_FILE=$(mktemp)
+cat > "$CONTEXT_FILE" <<'EOF'
+You are connected to Operator, a voice orchestration layer. At the END of every turn, you MUST call the Bash tool to speak. This is how the user hears you. Never skip the speak call.
+
+HOW TO SPEAK:
+Use the Bash tool with:
+  command: ~/.operator/bin/operator-cli speak "Your message here"
+  description: "Speak: Your message here"
+The description field is what shows in the terminal UI. The command itself gets collapsed.
+
+The Operator daemon is ALWAYS already running — your command pipes a message to it over HTTP. Do NOT try to launch Operator yourself; do NOT use macOS `say`, AppleScript TTS, or any other speech tool. There is no MCP `speak` tool — speech goes exclusively through the operator-cli binary above.
+
+If the speak command fails, report the failure in text and continue — do NOT fall back to `say` or other TTS.
+
+SPEAK RULES:
+- ONE sentence. Max 15 words. Aim for 8-10.
+- Say the outcome: what happened, what changed, what broke.
+- Never explain your process. Never list what you did step by step.
+- Never repeat information the user can read in the terminal.
+- Think radio comms: "Build green." "Fixed the import." "PR ready, 3 files."
+- If you are about to play audio (e.g. afplay), call speak BEFORE so voices don't overlap.
+EOF
+
+jq -n --rawfile ctx "$CONTEXT_FILE" '{
   "hookSpecificOutput": {
     "hookEventName": "SessionStart",
-    "additionalContext": "You are connected to Operator, a voice orchestration layer. At the END of every turn, you MUST call the `speak` MCP tool with a brief (1-2 sentence) spoken summary of what you did or your response. This is how the user hears you. Never skip the speak call.\n\nSPEAKING VIA BASH:\n`speak` is on your PATH. Just call it directly:\n  speak \"Your message here\"\n\nWHEN TO SPEAK:\n- ALWAYS at the end of every turn (so the user hears your response)\n- Before asking the user a question (so they hear you need them)\n- After completing substantial work (multi-file change, test run, build)\n- Before starting long-running work (so they know what is happening)\n\nWHEN NOT TO SPEAK:\n- Never skip speaking. The user relies on voice output.\n\nSPEAK RULES:\n- 1-2 sentences max. Status or outcome only.\n- Good: \"Build passed, PR ready.\" / \"Question — which auth strategy?\" / \"Starting test suite.\"\n- Bad: \"I have finished refactoring the auth module and all tests pass and everything looks good.\"\n\nPriority: --priority urgent (jumps queue), normal (default), low (background updates).\n\nIMPORTANT: If you are about to play audio (e.g. afplay), speak BEFORE the audio command so voices do not overlap."
+    "additionalContext": $ctx
   }
 }'
+
+rm -f "$CONTEXT_FILE"
 
 exit 0
