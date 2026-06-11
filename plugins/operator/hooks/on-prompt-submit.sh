@@ -7,8 +7,9 @@ set -euo pipefail
 
 source "$(dirname "$0")/_common.sh"
 [[ -z "$TOKEN" ]] && exit 0
+[[ "$HEADLESS" == "true" ]] && exit 0
 
-curl -s -o /dev/null -w "" \
+curl -s -m 5 -o /dev/null \
   -X POST "http://127.0.0.1:7420/hook/prompt-submit" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
@@ -16,6 +17,6 @@ curl -s -o /dev/null -w "" \
     --arg sid "$SESSION_NAME" \
     --arg tty "$TTY" \
     '{ "session_id": $sid, "tty": $tty }'
-  )" 2>/dev/null || true
+  )" >/dev/null 2>&1 &
 
 exit 0

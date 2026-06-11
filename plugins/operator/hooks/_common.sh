@@ -33,6 +33,24 @@ else
   esac
 fi
 
+# Detect headless runs: `claude -p` / `--print` (parent args), or no
+# controlling TTY at all (SDK, CI, cron). Headless sessions skip daemon
+# registration — no connected/disconnected announcements, no heartbeats —
+# but the speak CLI still works if the agent chooses to use it.
+HEADLESS=false
+if [[ "$TTY" == "unknown" || "$TTY" == "/dev/??" ]]; then
+  HEADLESS=true
+else
+  _PARENT_ARGS=$(ps -o args= -p $PPID 2>/dev/null) || true
+  read -r -a _PARENT_WORDS <<< "$_PARENT_ARGS"
+  for _word in "${_PARENT_WORDS[@]:-}"; do
+    if [[ "$_word" == "-p" || "$_word" == "--print" ]]; then
+      HEADLESS=true
+      break
+    fi
+  done
+fi
+
 # Read bearer token
 TOKEN_FILE="$HOME/.operator/token"
 if [[ -f "$TOKEN_FILE" ]]; then
