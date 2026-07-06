@@ -33,12 +33,15 @@ else
   esac
 fi
 
-# Detect headless runs: `claude -p` / `--print` (parent args), or no
-# controlling TTY at all (SDK, CI, cron). Headless sessions skip daemon
-# registration — no connected/disconnected announcements, no heartbeats —
-# but the speak CLI still works if the agent chooses to use it.
+# Detect headless runs: spawned from another agent's tool call (Claude
+# Code injects CLAUDE_CODE_CHILD_SESSION into every tool subprocess),
+# `claude -p` / `--print` (parent args), or no controlling TTY at all
+# (SDK, CI, cron). Headless sessions skip daemon registration and get no
+# speak instructions — background agents stay silent.
 HEADLESS=false
-if [[ "$TTY" == "unknown" || "$TTY" == "/dev/??" ]]; then
+if [[ -n "${CLAUDE_CODE_CHILD_SESSION:-}" ]]; then
+  HEADLESS=true
+elif [[ "$TTY" == "unknown" || "$TTY" == "/dev/??" ]]; then
   HEADLESS=true
 else
   _PARENT_ARGS=$(ps -o args= -p $PPID 2>/dev/null) || true
