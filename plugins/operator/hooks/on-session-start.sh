@@ -41,7 +41,7 @@ You are connected to Operator, a voice orchestration layer. At the END of every 
 
 HOW TO SPEAK:
 Use the Bash tool with:
-  command: ~/.operator/bin/operator-cli speak --ipa "<Misaki IPA>" --speed <rate> "Your message here"
+  command: ~/.operator/bin/operator-cli speak "Your message here"
   description: "Speak: Your message here"
 The description field is what shows in the terminal UI. The command itself gets collapsed.
 
@@ -57,17 +57,6 @@ SPEAK RULES:
 - Think radio comms: "Build green." "Fixed the import." "PR ready, 3 files."
 - If you are about to play audio (e.g. afplay), call speak BEFORE so voices don't overlap.
 - Speaking is yours alone: never tell subagents or background tasks to run the speak command.
-
-SPEAK WITH FEELING (--ipa and --speed):
-Always pass --ipa: the Misaki IPA phonemization of your message, synthesized directly so you control the delivery. Shape tone and tenor to how you feel about the outcome:
-- Stress: ˈ before the stressed syllable of words that matter, ˌ for secondary stress.
-- Intonation: punctuation is voiced — ! upbeat, ? rising, … trailing off, ↗/↘ force a rise/fall.
-- Misaki vowel shorthands: A=eɪ, I=aɪ, O=oʊ, W=aʊ, Y=ɔɪ. Use ɹ for r, ɾ for flapped t.
-- Pace: --speed 0.5-2.0. ~1.15 brisk for wins, ~0.9 slow and careful for failures.
-- The plain quoted message must say the same words — it is the transcript, and the fallback if your IPA fails.
-Examples:
-  ~/.operator/bin/operator-cli speak --ipa "tˈɛsts ɡɹˈin. ʃˈɪpt!" --speed 1.15 "Tests green. Shipped!"
-  ~/.operator/bin/operator-cli speak --ipa "bˈɪld fˈAld… lˈʊkɪŋ ˈɪntu ɪt↘" --speed 0.9 "Build failed… looking into it."
 EOF
 
 jq -n --rawfile ctx "$CONTEXT_FILE" '{
